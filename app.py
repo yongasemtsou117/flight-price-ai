@@ -1,0 +1,234 @@
+from fastapi import FastAPI, Request, Form
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
+from fastapi.staticfiles import StaticFiles
+
+import pandas as pd
+import joblib
+
+from datetime import datetime
+
+
+app = FastAPI()
+
+# dossiers HTML et CSS
+templates = Jinja2Templates(directory="templates")
+app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+# charger modèle ML
+model = joblib.load("flight_price_model.pkl")
+
+# charger encodeurs
+label_encoders = joblib.load("label_encoders.pkl")
+
+
+# colonnes catégorielles
+categorical_cols = [
+    "route",
+    "airline_marketing",
+    "cabin_class",
+    "departure_time_bucket"
+]
+
+
+# features du modèle
+features = [
+    "distance_km",
+    "flight_duration_min",
+    "number_of_segments",
+    "number_of_stops",
+    "competition_level",
+    "route_popularity",
+    "business_route_flag",
+    "days_to_departure",
+    "month",
+    "week_of_year",
+    "day_of_week",
+    "is_weekend",
+    "season",
+    "seats_available",
+    "route",
+    "airline_marketing",
+    "cabin_class",
+    "departure_time_bucket",
+    "price_change_1d",
+    "rolling_mean_price",
+    "price_volatility",
+    "price_momentum"
+]
+
+
+# routes disponibles
+routes = {
+
+("Montreal","Toronto"): {
+"route":"YUL-YYZ",
+"distance_km":504,
+"duration":90,
+"base_price":180
+},
+
+("Montreal","Vancouver"): {
+"route":"YUL-YVR",
+"distance_km":3680,
+"duration":300,
+"base_price":420
+},
+
+("Montreal","Paris"): {
+"route":"YUL-CDG",
+"distance_km":5525,
+"duration":420,
+"base_price":750
+},
+
+("Toronto","New York"): {
+"route":"YYZ-JFK",
+"distance_km":550,
+"duration":95,
+"base_price":210
+}
+
+}
+
+
+# fonction recommandation
+def recommendation(p):
+
+    if p > 0.7:
+        return "BUY NOW"
+
+    elif p > 0.55:
+        return "BUY"
+
+    elif p > 0.4:
+        return "WAIT"
+
+    else:
+        return "STRONG WAIT"
+
+
+
+@app.get("/", response_class=HTMLResponse)
+def home(request: Request):
+
+    return templates.TemplateResponse(
+        "index.html",
+        {"request": request}
+    )
+
+
+
+@app.post("/predict", response_class=HTMLResponse)
+def predict(
+
+    request: Request,
+
+    departure_city: str = Form(...),
+    arrival_city: str = Form(...),
+    airline_marketing: str = Form(...),
+    cabin_class: str = Form(...),
+    departure_date: str = Form(...),
+    departure_time: str = Form(...)
+):
+
+    today = datetime.today()
+
+    dep_date = datetime.strptime(departure_date,"%Y-%m-%d")
+
+    days_to_departure = (dep_date - today).days
+
+
+    route_info = routes[(departure_city,arrival_city)]
+
+    route = route_info["route"]
+    distance = route_info["distance_km"]
+    duration = route_info["duration"]
+    base_price = route_info["base_price"]
+
+
+    # convertir heure en bucket
+    hour = int(departure_time.split(":")[0])
+
+    if hour < 12:
+        departure_bucket = "Morning"
+    elif hour < 17:
+        departure_bucket = "Afternoon"
+    elif hour < 21:
+        departure_bucket = "Evening"
+    else:
+        departure_bucket = "Night"
+
+
+    # données pour le modèle
+    data = {
+
+    "distance_km":distance,
+    "flight_duration_min":duration,
+    "number_of_segments":1,
+    "number_of_stops":0,
+    "competition_level":3,
+    "route_popularity":5,
+    "business_route_flag":0,
+    "days_to_departure":days_to_departure,
+    "month":dep_date.month,
+    "week_of_year":dep_date.isocalendar()[1],
+    "day_of_week":dep_date.weekday(),
+    "is_weekend":1 if dep_date.weekday() >=5 else 0,
+    "season":1,
+    "seats_available":25,
+    "route":route,
+    "airline_marketing":airline_marketing,
+    "cabin_class":cabin_class,
+    "departure_time_bucket":departure_bucket,
+    "price_change_1d":0.02,
+    "rolling_mean_price":base_price,
+    "price_volatility":0.1,
+    "price_momentum":0.03
+
+    }
+
+
+    df = pd.DataFrame([data])
+
+
+    # encodage des variables catégorielles
+    for col in categorical_cols:
+
+        le = label_encoders[col]
+
+        df[col] = df[col].astype(str)
+
+        df[col] = df[col].apply(
+            lambda x: le.transform([x])[0] if x in le.classes_ else -1
+        )
+
+
+    X = df[features]
+
+
+    # prédiction
+    prediction = model.predict(X)[0]
+    probability = model.predict_proba(X)[0][1]
+
+
+    decision = recommendation(probability)
+
+
+    # estimation prix aujourd'hui
+    today_price = base_price * (1 + probability * 0.3)
+
+
+    return templates.TemplateResponse(
+
+        "index.html",
+
+        {
+            "request":request,
+            "price":round(today_price,2),
+            "probability":round(probability,2),
+            "decision":decision
+        }
+
+    )

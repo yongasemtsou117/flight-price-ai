@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+<meta charset="UTF-8">
+<title>Flight Price AI Advisor</title>
+
+<link rel="stylesheet" href="/static/style.css">
+
+</head>
+
+<body>
+
+<h1 class="title">✈ Flight Price AI Advisor</h1>
+
+<p class="subtitle">
+Predict if flight prices will increase and decide when to buy.
+</p>
+
+
+<!-- CONTENEUR PRINCIPAL -->
+<div class="layout">
+
+
+<!-- FORMULAIRE -->
+<div class="container">
+
+<form action="/predict" method="post">
+
+<label>Departure City</label>
+<select name="departure_city" required>
+
+<option value="">Select</option>
+<option value="Montreal">Montreal</option>
+<option value="Toronto">Toronto</option>
+
+</select>
+
+
+<label>Arrival City</label>
+<select name="arrival_city" required>
+
+<option value="">Select</option>
+<option value="Toronto">Toronto</option>
+<option value="Vancouver">Vancouver</option>
+<option value="New York">New York</option>
+<option value="Paris">Paris</option>
+
+</select>
+
+
+<label>Airline</label>
+<select name="airline_marketing" required>
+
+<option value="">Select</option>
+<option value="Air Canada">Air Canada</option>
+<option value="Air Transat">Air Transat</option>
+<option value="United Airlines">United Airlines</option>
+<option value="Air France">Air France</option>
+
+</select>
+
+
+<label>Cabin Class</label>
+<select name="cabin_class" required>
+
+<option value="">Select</option>
+<option value="Economy">Economy</option>
+<option value="Premium Economy">Premium Economy</option>
+<option value="Business">Business</option>
+
+</select>
+
+
+<label>Departure Date</label>
+<input type="date" name="departure_date" required>
+
+
+<label>Departure Time</label>
+<input type="time" name="departure_time" required>
+
+
+<button type="submit">Predict Price</button>
+
+</form>
+
+</div>
+
+
+
+<!-- RESULTAT -->
+{% if probability %}
+
+<div class="result">
+
+<h2>📊 Price Analysis</h2>
+
+<p>
+<strong>Estimated Price Today</strong>
+</p>
+
+<div class="price">
+€{{price}}
+</div>
+
+
+<p>
+<strong>Probability Price Increase</strong>
+</p>
+
+<div class="probability">
+{{probability}}
+</div>
+
+
+<p>
+<strong>Recommendation</strong>
+</p>
+
+
+{% if decision == "BUY NOW" %}
+
+<div class="decision buy">
+{{decision}}
+</div>
+
+{% elif decision == "BUY" %}
+
+<div class="decision buy">
+{{decision}}
+</div>
+
+{% elif decision == "WAIT" %}
+
+<div class="decision wait">
+{{decision}}
+</div>
+
+{% else %}
+
+<div class="decision wait">
+{{decision}}
+</div>
+
+{% endif %}
+
+
+</div>
+
+{% endif %}
+
+
+</div>
+
+</body>
+</html>
