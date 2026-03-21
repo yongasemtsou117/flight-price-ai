@@ -4,42 +4,54 @@
 <head>
 
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
 <title>Flight Price AI Advisor</title>
 
 <link rel="stylesheet" href="/static/style.css">
 
+<!-- BOOTSTRAP -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
 </head>
 
-<body>
+<body class="bg-light">
 
-<h1 class="title">✈ Flight Price AI Advisor</h1>
+<div class="container py-5">
 
-<p class="subtitle">
+<h1 class="title text-center mb-3">✈ Flight Price AI Advisor</h1>
+
+<p class="subtitle text-center mb-5">
 Predict if flight prices will increase and decide when to buy.
 </p>
 
 
 <!-- CONTENEUR PRINCIPAL -->
-<div class="layout">
+<div class="row justify-content-center">
 
 
 <!-- FORMULAIRE -->
-<div class="container">
+<div class="col-lg-5 col-md-6 col-sm-12 mb-4">
+
+<div class="card shadow p-4">
 
 <form action="/predict" method="post">
 
-<label>Departure City</label>
-<select name="departure_city" required>
+<div class="mb-3">
+<label class="form-label">Departure City</label>
+<select name="departure_city" class="form-select" required>
 
 <option value="">Select</option>
 <option value="Montreal">Montreal</option>
 <option value="Toronto">Toronto</option>
 
 </select>
+</div>
 
 
-<label>Arrival City</label>
-<select name="arrival_city" required>
+<div class="mb-3">
+<label class="form-label">Arrival City</label>
+<select name="arrival_city" class="form-select" required>
 
 <option value="">Select</option>
 <option value="Toronto">Toronto</option>
@@ -48,10 +60,12 @@ Predict if flight prices will increase and decide when to buy.
 <option value="Paris">Paris</option>
 
 </select>
+</div>
 
 
-<label>Airline</label>
-<select name="airline_marketing" required>
+<div class="mb-3">
+<label class="form-label">Airline</label>
+<select name="airline_marketing" class="form-select" required>
 
 <option value="">Select</option>
 <option value="Air Canada">Air Canada</option>
@@ -60,10 +74,12 @@ Predict if flight prices will increase and decide when to buy.
 <option value="Air France">Air France</option>
 
 </select>
+</div>
 
 
-<label>Cabin Class</label>
-<select name="cabin_class" required>
+<div class="mb-3">
+<label class="form-label">Cabin Class</label>
+<select name="cabin_class" class="form-select" required>
 
 <option value="">Select</option>
 <option value="Economy">Economy</option>
@@ -71,19 +87,28 @@ Predict if flight prices will increase and decide when to buy.
 <option value="Business">Business</option>
 
 </select>
+</div>
 
 
-<label>Departure Date</label>
-<input type="date" name="departure_date" required>
+<div class="mb-3">
+<label class="form-label">Departure Date</label>
+<input type="date" name="departure_date" class="form-control" required>
+</div>
 
 
-<label>Departure Time</label>
-<input type="time" name="departure_time" required>
+<div class="mb-4">
+<label class="form-label">Departure Time</label>
+<input type="time" name="departure_time" class="form-control" required>
+</div>
 
 
-<button type="submit">Predict Price</button>
+<button type="submit" class="btn btn-primary w-100">
+Predict Price
+</button>
 
 </form>
+
+</div>
 
 </div>
 
@@ -92,64 +117,63 @@ Predict if flight prices will increase and decide when to buy.
 <!-- RESULTAT -->
 {% if probability %}
 
-<div class="result">
+<div class="col-lg-5 col-md-6 col-sm-12">
 
-<h2>📊 Price Analysis</h2>
+<div class="card shadow p-4 text-center">
 
-<p>
-<strong>Estimated Price Today</strong>
-</p>
+<h2 class="mb-4">📊 Price Analysis</h2>
 
-<div class="price">
+<p><strong>Estimated Price Today</strong></p>
+
+<div class="price h3 mb-4">
 €{{price}}
 </div>
 
 
-<p>
-<strong>Probability Price Increase</strong>
-</p>
+<p><strong>Probability Price Increase</strong></p>
 
-<div class="probability">
+<div class="probability h4 mb-4">
 {{probability}}
 </div>
 
 
-<p>
-<strong>Recommendation</strong>
-</p>
+<p><strong>Recommendation</strong></p>
 
 
 {% if decision == "BUY NOW" %}
 
-<div class="decision buy">
+<div class="decision buy alert alert-success">
 {{decision}}
 </div>
 
 {% elif decision == "BUY" %}
 
-<div class="decision buy">
+<div class="decision buy alert alert-success">
 {{decision}}
 </div>
 
 {% elif decision == "WAIT" %}
 
-<div class="decision wait">
+<div class="decision wait alert alert-warning">
 {{decision}}
 </div>
 
 {% else %}
 
-<div class="decision wait">
+<div class="decision wait alert alert-warning">
 {{decision}}
 </div>
 
 {% endif %}
 
+</div>
 
 </div>
 
 {% endif %}
 
+
+</div>
 
 </div>
 

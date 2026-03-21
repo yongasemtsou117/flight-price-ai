@@ -1,149 +1,128 @@
 body{
-
-font-family:Arial;
-background:#f4f6f8;
-margin:0;
-text-align:center;
-
+    font-family: 'Segoe UI', Arial;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    margin:0;
+    color:white;
 }
 
-.title{
-
-margin-top:20px;
-
+/* HEADER */
+.header{
+    margin-top:30px;
 }
 
-.layout{
-
-display:flex;
-justify-content:center;
-align-items:flex-start;
-gap:40px;
-margin-top:30px;
-
+.header h1{
+    font-size:34px;
+    font-weight:700;
 }
 
-.container{
-
-background:white;
-padding:25px;
-border-radius:12px;
-box-shadow:0 8px 25px rgba(0,0,0,0.1);
-width:340px;
-
+.header p{
+    color:#ccc;
 }
 
-.result{
-
-background:white;
-padding:30px;
-border-radius:12px;
-box-shadow:0 8px 25px rgba(0,0,0,0.1);
-width:340px;
-text-align:left;
-
+/* CARD GLASS */
+.card-custom{
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    padding:25px;
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
+/* INPUTS */
 label{
-
-font-size:14px;
-font-weight:bold;
-
+    font-size:13px;
+    font-weight:600;
 }
 
 select,input{
-
-width:100%;
-padding:10px;
-margin-top:6px;
-margin-bottom:15px;
-border-radius:6px;
-border:1px solid #ddd;
-
+    width:100%;
+    padding:10px;
+    margin-top:6px;
+    margin-bottom:15px;
+    border-radius:8px;
+    border:none;
+    background:rgba(255,255,255,0.15);
+    color:white;
 }
 
+select:focus,input:focus{
+    outline:2px solid #4fc3f7;
+}
+
+/* BUTTON */
 button{
-
-width:100%;
-padding:12px;
-background:#1a73e8;
-color:white;
-border:none;
-border-radius:6px;
-font-size:16px;
-cursor:pointer;
-
+    width:100%;
+    padding:12px;
+    background:linear-gradient(135deg,#4fc3f7,#29b6f6);
+    color:white;
+    border:none;
+    border-radius:8px;
+    font-size:16px;
+    font-weight:600;
+    cursor:pointer;
+    transition:0.3s;
 }
 
 button:hover{
-
-background:#0f5ed7;
-
+    transform:scale(1.05);
 }
 
-.metric{
-
-margin-bottom:20px;
-
-}
-
-.label{
-
-font-size:14px;
-color:#666;
-
+/* RESULT */
+.result{
+    text-align:center;
 }
 
 .price{
-
-font-size:28px;
-font-weight:bold;
-color:#1a73e8;
-
+    font-size:34px;
+    font-weight:bold;
+    color:#4fc3f7;
 }
 
 .probability{
-
-font-size:22px;
-font-weight:bold;
-
+    font-size:20px;
+    margin-bottom:10px;
 }
 
-/* BARRE PROBABILITE */
-
+/* BAR */
 .prob-bar{
-
-width:100%;
-height:12px;
-background:#eee;
-border-radius:10px;
-margin-top:10px;
-
+    width:100%;
+    height:12px;
+    background:rgba(255,255,255,0.2);
+    border-radius:10px;
+    margin-bottom:20px;
 }
 
 .prob-fill{
-
-height:100%;
-background:#1a73e8;
-border-radius:10px;
-
+    height:100%;
+    background:linear-gradient(90deg,#4fc3f7,#00e5ff);
+    border-radius:10px;
+    transition:1s;
 }
 
-.decision{
-
-font-size:22px;
-font-weight:bold;
-
+/* BADGE */
+.badge-custom{
+    padding:10px 20px;
+    border-radius:25px;
+    font-weight:bold;
+    display:inline-block;
+    margin-top:10px;
 }
 
 .buy{
-
-color:green;
-
+    background:#00e676;
+    color:#003300;
 }
 
 .wait{
+    background:#ff5252;
+    color:white;
+}
 
-color:red;
+/* RESPONSIVE */
+@media(max-width:768px){
+
+    .header h1{
+        font-size:26px;
+    }
 
 }
