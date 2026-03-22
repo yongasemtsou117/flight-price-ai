@@ -1,81 +1,62 @@
-/* GLOBAL */
 body{
-    font-family: 'Segoe UI', Arial, sans-serif;
+    font-family: 'Segoe UI', Arial;
     background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
     margin:0;
     color:white;
-    min-height:100vh;
 }
 
 /* HEADER */
 .header{
     margin-top:30px;
-    text-align:center;
 }
 
 .header h1{
     font-size:34px;
     font-weight:700;
-    letter-spacing:1px;
 }
 
 .header p{
     color:#ccc;
-    font-size:14px;
 }
 
 /* CARD GLASS */
 .card-custom{
     background: rgba(255,255,255,0.08);
-    backdrop-filter: blur(18px);
+    backdrop-filter: blur(15px);
     padding:25px;
-    border-radius:18px;
-    box-shadow:0 15px 40px rgba(0,0,0,0.4);
-    transition:0.3s ease;
-}
-
-.card-custom:hover{
-    transform: translateY(-5px);
+    border-radius:16px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.3);
 }
 
 /* INPUTS */
 label{
     font-size:13px;
     font-weight:600;
-    margin-top:5px;
 }
 
 select,input{
     width:100%;
-    padding:11px;
+    padding:10px;
     margin-top:6px;
     margin-bottom:15px;
-    border-radius:10px;
+    border-radius:8px;
     border:none;
     background:rgba(255,255,255,0.15);
     color:white;
-    font-size:14px;
-    transition:0.2s;
-}
-
-/* FIX texte visible dans select */
-select option{
-    color:black;
 }
 
 select:focus,input:focus{
     outline:2px solid #4fc3f7;
-    background:rgba(255,255,255,0.2);
 }
 
 /* BUTTON */
 button{
     width:100%;
-    padding:13px;
+    padding:12px;
     background:linear-gradient(135deg,#4fc3f7,#29b6f6);
     color:white;
     border:none;
-    border-radius:10px;
+    border-radius:8px;
     font-size:16px;
     font-weight:600;
     cursor:pointer;
@@ -84,7 +65,6 @@ button{
 
 button:hover{
     transform:scale(1.05);
-    box-shadow:0 5px 20px rgba(79,195,247,0.4);
 }
 
 /* RESULT */
@@ -92,24 +72,15 @@ button:hover{
     text-align:center;
 }
 
-/* PRICE */
 .price{
     font-size:34px;
     font-weight:bold;
     color:#4fc3f7;
-    margin-bottom:10px;
-    line-height:1.4;
 }
 
-.price br{
-    margin-bottom:6px;
-}
-
-/* PROBABILITY */
 .probability{
-    font-size:18px;
+    font-size:20px;
     margin-bottom:10px;
-    color:#ddd;
 }
 
 /* BAR */
@@ -119,50 +90,32 @@ button:hover{
     background:rgba(255,255,255,0.2);
     border-radius:10px;
     margin-bottom:20px;
-    overflow:hidden;
 }
 
 .prob-fill{
     height:100%;
     background:linear-gradient(90deg,#4fc3f7,#00e5ff);
     border-radius:10px;
-    transition:1s ease;
+    transition:1s;
 }
 
 /* BADGE */
 .badge-custom{
-    padding:10px 22px;
+    padding:10px 20px;
     border-radius:25px;
     font-weight:bold;
     display:inline-block;
     margin-top:10px;
-    font-size:14px;
 }
 
-/* BUY */
 .buy{
     background:#00e676;
     color:#003300;
-    box-shadow:0 0 15px rgba(0,230,118,0.6);
 }
 
-/* WAIT */
 .wait{
     background:#ff5252;
     color:white;
-    box-shadow:0 0 15px rgba(255,82,82,0.6);
-}
-
-/* ALERT */
-.alert{
-    font-size:14px;
-    border-radius:10px;
-    padding:10px;
-}
-
-/* CHART */
-canvas{
-    margin-top:20px;
 }
 
 /* RESPONSIVE */
@@ -170,32 +123,6 @@ canvas{
 
     .header h1{
         font-size:26px;
-    }
-
-    .price{
-        font-size:28px;
-    }
-
-    .card-custom{
-        padding:20px;
-    }
-
-}
-
-/* MOBILE ULTRA OPTIM */
-@media(max-width:480px){
-
-    .header{
-        margin-top:20px;
-    }
-
-    .header p{
-        font-size:12px;
-    }
-
-    button{
-        font-size:14px;
-        padding:11px;
     }
 
 }

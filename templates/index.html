@@ -36,24 +36,15 @@
 
         <div class="card-custom">
 
-            <!-- 🔴 ERROR MESSAGE -->
-            {% if error %}
-            <div class="alert alert-danger text-center">
-                {{error}}
-            </div>
-            {% endif %}
-
             <form action="/predict" method="post">
 
-                <!-- DEPARTURE -->
                 <label>Departure City</label>
                 <select name="departure_city" required>
                     <option value="">Select</option>
                     <option value="Montreal">Montreal</option>
-                    <option value="London">London</option>
+                    <option value="Toronto">Toronto</option>
                 </select>
 
-                <!-- ARRIVAL -->
                 <label>Arrival City</label>
                 <select name="arrival_city" required>
                     <option value="">Select</option>
@@ -61,11 +52,8 @@
                     <option value="Vancouver">Vancouver</option>
                     <option value="New York">New York</option>
                     <option value="Paris">Paris</option>
-                    <option value="London">London</option>
-                    <option value="Casablanca">Casablanca</option>
                 </select>
 
-                <!-- AIRLINE -->
                 <label>Airline</label>
                 <select name="airline_marketing" required>
                     <option value="">Select</option>
@@ -75,7 +63,6 @@
                     <option value="Air France">Air France</option>
                 </select>
 
-                <!-- CABIN -->
                 <label>Cabin Class</label>
                 <select name="cabin_class" required>
                     <option value="">Select</option>
@@ -84,11 +71,9 @@
                     <option value="Business">Business</option>
                 </select>
 
-                <!-- DATE -->
                 <label>Departure Date</label>
                 <input type="date" name="departure_date" required>
 
-                <!-- TIME -->
                 <label>Departure Time</label>
                 <input type="time" name="departure_time" required>
 
@@ -110,10 +95,9 @@
 
             <h2>📊 AI Price Analysis</h2>
 
-            <!-- 💰 PRICE EUR + USD -->
+            <!-- PRICE -->
             <div class="price">
-                💶 €{{price}} <br>
-                💵 ${{price_usd}}
+                €{{price}}
             </div>
 
             <!-- PROBABILITY -->
