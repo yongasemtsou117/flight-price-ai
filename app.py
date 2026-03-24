@@ -5,22 +5,25 @@ from fastapi.staticfiles import StaticFiles
 
 import pandas as pd
 import joblib
+import os
 
 from datetime import datetime
 
 
 app = FastAPI()
 
-# dossiers HTML et CSS
-templates = Jinja2Templates(directory="templates")
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# 🔥 chemins robustes (IMPORTANT pour Render)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
 
 
 # charger modèle ML
-model = joblib.load("flight_price_model.pkl")
+model = joblib.load(os.path.join(BASE_DIR, "flight_price_model.pkl"))
 
 # charger encodeurs
-label_encoders = joblib.load("label_encoders.pkl")
+label_encoders = joblib.load(os.path.join(BASE_DIR, "label_encoders.pkl"))
 
 
 # colonnes catégorielles
@@ -83,8 +86,7 @@ routes = {
 "base_price":750
 },
 
-# 🔥 NOUVELLES ROUTES
-
+# nouvelles routes
 ("Montreal","London"): {
 "route":"YUL-LHR",
 "distance_km":5200,
@@ -125,7 +127,6 @@ routes = {
 
 # fonction recommandation
 def recommendation(p):
-
     if p > 0.7:
         return "BUY NOW"
     elif p > 0.55:
@@ -138,7 +139,6 @@ def recommendation(p):
 
 @app.get("/", response_class=HTMLResponse)
 def home(request: Request):
-
     return templates.TemplateResponse(
         "index.html",
         {"request": request}
@@ -158,30 +158,40 @@ def predict(
     departure_time: str = Form(...)
 ):
 
-    # 🔒 sécurité route
-    if (departure_city, arrival_city) not in routes:
+    # 🔥 nettoyage et sécurisation des inputs
+    departure_city = departure_city.strip().title()
+    arrival_city = arrival_city.strip().title()
+    airline_marketing = airline_marketing.strip()
+    cabin_class = cabin_class.strip()
+
+    print("DEBUG:", departure_city, arrival_city)
+
+    # 🔒 vérification route
+    route_key = (departure_city, arrival_city)
+
+    if route_key not in routes:
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
-                "error": "Route not available yet"
+                "error": f"Route {departure_city} → {arrival_city} not available"
             }
         )
 
     today = datetime.now()
     dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
 
-    # 🔒 éviter négatif
+    # éviter négatif
     days_to_departure = max((dep_date - today).days, 0)
 
-    route_info = routes[(departure_city, arrival_city)]
+    route_info = routes[route_key]
 
     route = route_info["route"]
     distance = route_info["distance_km"]
     duration = route_info["duration"]
     base_price = route_info["base_price"]
 
-    # convertir heure en bucket
+    # bucket heure
     hour = int(departure_time.split(":")[0])
 
     if hour < 12:
@@ -193,7 +203,7 @@ def predict(
     else:
         departure_bucket = "Night"
 
-    # données pour le modèle
+    # données modèle
     data = {
 
         "distance_km": distance,
@@ -223,7 +233,7 @@ def predict(
 
     df = pd.DataFrame([data])
 
-    # encodage des variables catégorielles
+    # encodage
     for col in categorical_cols:
 
         le = label_encoders[col]
@@ -242,10 +252,10 @@ def predict(
 
     decision = recommendation(probability)
 
-    # 💰 estimation prix
+    # prix
     price_eur = base_price * (1 + probability * 0.3)
 
-    # 💱 conversion USD
+    # conversion USD
     usd_rate = 1.59
     price_usd = price_eur * usd_rate
 
