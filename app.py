@@ -12,11 +12,15 @@ from datetime import datetime
 
 app = FastAPI()
 
-# 🔥 chemins robustes (IMPORTANT pour Render)
+# 🔥 chemins robustes (IMPORTANT Render)
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
 app.mount("/static", StaticFiles(directory=os.path.join(BASE_DIR, "static")), name="static")
+
+# 🔥 FIX CRITIQUE JINJA (TON ERREUR)
+templates.env.cache = None
+templates.env.auto_reload = True
 
 
 # charger modèle ML
@@ -86,7 +90,6 @@ routes = {
 "base_price":750
 },
 
-# nouvelles routes
 ("Montreal","London"): {
 "route":"YUL-LHR",
 "distance_km":5200,
@@ -158,117 +161,128 @@ def predict(
     departure_time: str = Form(...)
 ):
 
-    # 🔥 nettoyage et sécurisation des inputs
-    departure_city = departure_city.strip().title()
-    arrival_city = arrival_city.strip().title()
-    airline_marketing = airline_marketing.strip()
-    cabin_class = cabin_class.strip()
+    try:
+        # 🔥 nettoyage des inputs (CRITIQUE)
+        departure_city = departure_city.strip().title()
+        arrival_city = arrival_city.strip().title()
+        airline_marketing = airline_marketing.strip()
+        cabin_class = cabin_class.strip()
 
-    print("DEBUG:", departure_city, arrival_city)
+        print("DEBUG INPUT:", departure_city, arrival_city)
 
-    # 🔒 vérification route
-    route_key = (departure_city, arrival_city)
+        # 🔒 vérification route
+        route_key = (departure_city, arrival_city)
 
-    if route_key not in routes:
+        if route_key not in routes:
+            return templates.TemplateResponse(
+                "index.html",
+                {
+                    "request": request,
+                    "error": f"Route {departure_city} → {arrival_city} not available"
+                }
+            )
+
+        today = datetime.now()
+        dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
+
+        days_to_departure = max((dep_date - today).days, 0)
+
+        route_info = routes[route_key]
+
+        route = route_info["route"]
+        distance = route_info["distance_km"]
+        duration = route_info["duration"]
+        base_price = route_info["base_price"]
+
+        # bucket heure
+        hour = int(departure_time.split(":")[0])
+
+        if hour < 12:
+            departure_bucket = "Morning"
+        elif hour < 17:
+            departure_bucket = "Afternoon"
+        elif hour < 21:
+            departure_bucket = "Evening"
+        else:
+            departure_bucket = "Night"
+
+        # données modèle
+        data = {
+
+            "distance_km": distance,
+            "flight_duration_min": duration,
+            "number_of_segments": 1,
+            "number_of_stops": 0,
+            "competition_level": 3,
+            "route_popularity": 5,
+            "business_route_flag": 0,
+            "days_to_departure": days_to_departure,
+            "month": dep_date.month,
+            "week_of_year": dep_date.isocalendar()[1],
+            "day_of_week": dep_date.weekday(),
+            "is_weekend": 1 if dep_date.weekday() >= 5 else 0,
+            "season": 1,
+            "seats_available": 25,
+            "route": route,
+            "airline_marketing": airline_marketing,
+            "cabin_class": cabin_class,
+            "departure_time_bucket": departure_bucket,
+            "price_change_1d": 0.02,
+            "rolling_mean_price": base_price,
+            "price_volatility": 0.1,
+            "price_momentum": 0.03
+
+        }
+
+        df = pd.DataFrame([data])
+
+        # encodage
+        for col in categorical_cols:
+
+            le = label_encoders[col]
+
+            df[col] = df[col].astype(str)
+
+            df[col] = df[col].apply(
+                lambda x: le.transform([x])[0] if x in le.classes_ else -1
+            )
+
+        X = df[features]
+
+        # prédiction
+        prediction = model.predict(X)[0]
+        probability = model.predict_proba(X)[0][1]
+
+        decision = recommendation(probability)
+
+        # prix
+        price_eur = base_price * (1 + probability * 0.3)
+
+        # conversion USD
+        usd_rate = 1.59
+        price_usd = price_eur * usd_rate
+
+        return templates.TemplateResponse(
+
+            "index.html",
+
+            {
+                "request": request,
+                "price": round(price_eur, 2),
+                "price_usd": round(price_usd, 2),
+                "probability": round(probability, 2),
+                "decision": decision
+            }
+
+        )
+
+    except Exception as e:
+        print("ERROR:", str(e))
+
         return templates.TemplateResponse(
             "index.html",
             {
                 "request": request,
-                "error": f"Route {departure_city} → {arrival_city} not available"
+                "error": "Internal error - check logs"
             }
         )
-
-    today = datetime.now()
-    dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
-
-    # éviter négatif
-    days_to_departure = max((dep_date - today).days, 0)
-
-    route_info = routes[route_key]
-
-    route = route_info["route"]
-    distance = route_info["distance_km"]
-    duration = route_info["duration"]
-    base_price = route_info["base_price"]
-
-    # bucket heure
-    hour = int(departure_time.split(":")[0])
-
-    if hour < 12:
-        departure_bucket = "Morning"
-    elif hour < 17:
-        departure_bucket = "Afternoon"
-    elif hour < 21:
-        departure_bucket = "Evening"
-    else:
-        departure_bucket = "Night"
-
-    # données modèle
-    data = {
-
-        "distance_km": distance,
-        "flight_duration_min": duration,
-        "number_of_segments": 1,
-        "number_of_stops": 0,
-        "competition_level": 3,
-        "route_popularity": 5,
-        "business_route_flag": 0,
-        "days_to_departure": days_to_departure,
-        "month": dep_date.month,
-        "week_of_year": dep_date.isocalendar()[1],
-        "day_of_week": dep_date.weekday(),
-        "is_weekend": 1 if dep_date.weekday() >= 5 else 0,
-        "season": 1,
-        "seats_available": 25,
-        "route": route,
-        "airline_marketing": airline_marketing,
-        "cabin_class": cabin_class,
-        "departure_time_bucket": departure_bucket,
-        "price_change_1d": 0.02,
-        "rolling_mean_price": base_price,
-        "price_volatility": 0.1,
-        "price_momentum": 0.03
-
-    }
-
-    df = pd.DataFrame([data])
-
-    # encodage
-    for col in categorical_cols:
-
-        le = label_encoders[col]
-
-        df[col] = df[col].astype(str)
-
-        df[col] = df[col].apply(
-            lambda x: le.transform([x])[0] if x in le.classes_ else -1
-        )
-
-    X = df[features]
-
-    # prédiction
-    prediction = model.predict(X)[0]
-    probability = model.predict_proba(X)[0][1]
-
-    decision = recommendation(probability)
-
-    # prix
-    price_eur = base_price * (1 + probability * 0.3)
-
-    # conversion USD
-    usd_rate = 1.59
-    price_usd = price_eur * usd_rate
-
-    return templates.TemplateResponse(
-
-        "index.html",
-
-        {
-            "request": request,
-            "price": round(price_eur, 2),
-            "price_usd": round(price_usd, 2),
-            "probability": round(probability, 2),
-            "decision": decision
-        }
-
-    )
