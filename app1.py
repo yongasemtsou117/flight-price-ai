@@ -83,36 +83,6 @@ routes = {
 "base_price":750
 },
 
-# 🔥 NOUVELLES ROUTES
-
-("Montreal","London"): {
-"route":"YUL-LHR",
-"distance_km":5200,
-"duration":415,
-"base_price":700
-},
-
-("Montreal","Casablanca"): {
-"route":"YUL-CMN",
-"distance_km":5600,
-"duration":450,
-"base_price":650
-},
-
-("London","Montreal"): {
-"route":"LHR-YUL",
-"distance_km":5200,
-"duration":415,
-"base_price":720
-},
-
-("Casablanca","Montreal"): {
-"route":"CMN-YUL",
-"distance_km":5600,
-"duration":450,
-"base_price":670
-},
-
 ("Toronto","New York"): {
 "route":"YYZ-JFK",
 "distance_km":550,
@@ -128,12 +98,16 @@ def recommendation(p):
 
     if p > 0.7:
         return "BUY NOW"
+
     elif p > 0.55:
         return "BUY"
+
     elif p > 0.4:
         return "WAIT"
+
     else:
         return "STRONG WAIT"
+
 
 
 @app.get("/", response_class=HTMLResponse)
@@ -143,6 +117,7 @@ def home(request: Request):
         "index.html",
         {"request": request}
     )
+
 
 
 @app.post("/predict", response_class=HTMLResponse)
@@ -158,28 +133,20 @@ def predict(
     departure_time: str = Form(...)
 ):
 
-    # 🔒 sécurité route
-    if (departure_city, arrival_city) not in routes:
-        return templates.TemplateResponse(
-            "index.html",
-            {
-                "request": request,
-                "error": "Route not available yet"
-            }
-        )
+    today = datetime.today()
 
-    today = datetime.now()
-    dep_date = datetime.strptime(departure_date, "%Y-%m-%d")
+    dep_date = datetime.strptime(departure_date,"%Y-%m-%d")
 
-    # 🔒 éviter négatif
-    days_to_departure = max((dep_date - today).days, 0)
+    days_to_departure = (dep_date - today).days
 
-    route_info = routes[(departure_city, arrival_city)]
+
+    route_info = routes[(departure_city,arrival_city)]
 
     route = route_info["route"]
     distance = route_info["distance_km"]
     duration = route_info["duration"]
     base_price = route_info["base_price"]
+
 
     # convertir heure en bucket
     hour = int(departure_time.split(":")[0])
@@ -193,35 +160,38 @@ def predict(
     else:
         departure_bucket = "Night"
 
+
     # données pour le modèle
     data = {
 
-        "distance_km": distance,
-        "flight_duration_min": duration,
-        "number_of_segments": 1,
-        "number_of_stops": 0,
-        "competition_level": 3,
-        "route_popularity": 5,
-        "business_route_flag": 0,
-        "days_to_departure": days_to_departure,
-        "month": dep_date.month,
-        "week_of_year": dep_date.isocalendar()[1],
-        "day_of_week": dep_date.weekday(),
-        "is_weekend": 1 if dep_date.weekday() >= 5 else 0,
-        "season": 1,
-        "seats_available": 25,
-        "route": route,
-        "airline_marketing": airline_marketing,
-        "cabin_class": cabin_class,
-        "departure_time_bucket": departure_bucket,
-        "price_change_1d": 0.02,
-        "rolling_mean_price": base_price,
-        "price_volatility": 0.1,
-        "price_momentum": 0.03
+    "distance_km":distance,
+    "flight_duration_min":duration,
+    "number_of_segments":1,
+    "number_of_stops":0,
+    "competition_level":3,
+    "route_popularity":5,
+    "business_route_flag":0,
+    "days_to_departure":days_to_departure,
+    "month":dep_date.month,
+    "week_of_year":dep_date.isocalendar()[1],
+    "day_of_week":dep_date.weekday(),
+    "is_weekend":1 if dep_date.weekday() >=5 else 0,
+    "season":1,
+    "seats_available":25,
+    "route":route,
+    "airline_marketing":airline_marketing,
+    "cabin_class":cabin_class,
+    "departure_time_bucket":departure_bucket,
+    "price_change_1d":0.02,
+    "rolling_mean_price":base_price,
+    "price_volatility":0.1,
+    "price_momentum":0.03
 
     }
 
+
     df = pd.DataFrame([data])
+
 
     # encodage des variables catégorielles
     for col in categorical_cols:
@@ -234,31 +204,31 @@ def predict(
             lambda x: le.transform([x])[0] if x in le.classes_ else -1
         )
 
+
     X = df[features]
+
 
     # prédiction
     prediction = model.predict(X)[0]
     probability = model.predict_proba(X)[0][1]
 
+
     decision = recommendation(probability)
 
-    # 💰 estimation prix
-    price_eur = base_price * (1 + probability * 0.3)
 
-    # 💱 conversion USD
-    usd_rate = 1.59
-    price_usd = price_eur * usd_rate
+    # estimation prix aujourd'hui
+    today_price = base_price * (1 + probability * 0.3)
+
 
     return templates.TemplateResponse(
 
         "index.html",
 
         {
-            "request": request,
-            "price": round(price_eur, 2),
-            "price_usd": round(price_usd, 2),
-            "probability": round(probability, 2),
-            "decision": decision
+            "request":request,
+            "price":round(today_price,2),
+            "probability":round(probability,2),
+            "decision":decision
         }
 
     )
